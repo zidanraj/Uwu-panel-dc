@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}Z3NITH UWU PANEL{% endblock %}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#070b14;--sidebar:#0a1020;--card:#0d1525;
+  --border:#1a2a4a;--accent:#00e5ff;--accent2:#7c3aed;
+  --text:#e2e8f0;--muted:#64748b;--danger:#ff4757;
+  --success:#00e676;--warning:#ffa726;
+  --sidebar-w:220px;
+}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;display:flex;min-height:100vh;overflow-x:hidden}
+.bg-mesh{position:fixed;inset:0;background:radial-gradient(ellipse 60% 40% at 10% 20%,rgba(0,229,255,0.04),transparent),radial-gradient(ellipse 50% 50% at 90% 80%,rgba(124,58,237,0.05),transparent);z-index:0;pointer-events:none}
+
+/* Sidebar */
+.sidebar{
+  position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-w);
+  background:var(--sidebar);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;z-index:100;
+  overflow-y:auto;
+}
+.sidebar-logo{
+  padding:24px 20px 20px;
+  border-bottom:1px solid var(--border);
+}
+.sidebar-logo-title{
+  font-size:17px;font-weight:800;letter-spacing:2px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.sidebar-logo-sub{font-size:10px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:3px}
+.sidebar-user{
+  padding:14px 20px;
+  border-bottom:1px solid var(--border);
+  font-size:12px;
+}
+.sidebar-user-role{color:var(--accent);font-weight:600;letter-spacing:1px;text-transform:uppercase;font-size:10px}
+.sidebar-user-name{color:var(--text);font-size:13px;margin-top:3px;font-weight:600}
+.nav{flex:1;padding:12px 0}
+.nav-section{padding:8px 20px 4px;font-size:10px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;font-weight:600}
+.nav-link{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 20px;
+  color:var(--muted);font-size:13px;font-weight:500;
+  text-decoration:none;transition:all .15s;
+  border-left:3px solid transparent;
+}
+.nav-link:hover{color:var(--text);background:rgba(0,229,255,0.04);border-left-color:rgba(0,229,255,0.3)}
+.nav-link.active{color:var(--accent);background:rgba(0,229,255,0.07);border-left-color:var(--accent)}
+.nav-link svg{width:16px;height:16px;flex-shrink:0}
+.sidebar-footer{padding:16px 20px;border-top:1px solid var(--border)}
+.logout-btn{
+  display:flex;align-items:center;gap:8px;
+  color:var(--danger);font-size:12px;font-weight:600;
+  text-decoration:none;letter-spacing:1px;text-transform:uppercase;
+  transition:opacity .15s;
+}
+.logout-btn:hover{opacity:0.7}
+
+/* Main */
+.main{margin-left:var(--sidebar-w);flex:1;display:flex;flex-direction:column;min-height:100vh;position:relative;z-index:1}
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 28px;border-bottom:1px solid var(--border);
+  background:rgba(10,16,32,0.6);backdrop-filter:blur(10px);
+  position:sticky;top:0;z-index:50;
+}
+.topbar-title{font-size:20px;font-weight:700;color:var(--text)}
+.topbar-badges{display:flex;gap:8px}
+.badge{
+  padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;
+}
+.badge-admin{background:rgba(124,58,237,0.2);color:var(--accent2);border:1px solid rgba(124,58,237,0.3)}
+.badge-client{background:rgba(0,229,255,0.1);color:var(--accent);border:1px solid rgba(0,229,255,0.2)}
+.content{padding:28px;flex:1}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px;transition:border-color .2s}
+.card:hover{border-color:rgba(0,229,255,0.15)}
+.card-title{font-size:13px;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}
+.stat-val{font-size:30px;font-weight:800;color:var(--text)}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:4px}
+
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;letter-spacing:.5px}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:#00ccee;box-shadow:0 4px 20px rgba(0,229,255,0.3)}
+.btn-purple{background:var(--accent2);color:#fff}
+.btn-purple:hover{background:#6d28d9;box-shadow:0 4px 20px rgba(124,58,237,0.3)}
+.btn-danger{background:rgba(255,71,87,0.15);color:var(--danger);border:1px solid rgba(255,71,87,0.3)}
+.btn-danger:hover{background:rgba(255,71,87,0.25)}
+.btn-ghost{background:rgba(255,255,255,0.05);color:var(--muted);border:1px solid var(--border)}
+.btn-ghost:hover{background:rgba(255,255,255,0.08);color:var(--text)}
+.btn-success{background:rgba(0,230,118,0.15);color:var(--success);border:1px solid rgba(0,230,118,0.3)}
+.btn-success:hover{background:rgba(0,230,118,0.25)}
+.btn-sm{padding:6px 12px;font-size:12px}
+
+/* Table */
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse}
+th{padding:12px 16px;text-align:left;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;background:rgba(0,0,0,0.2);border-bottom:1px solid var(--border)}
+td{padding:13px 16px;font-size:13px;border-bottom:1px solid rgba(26,42,74,0.5);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(0,229,255,0.02)}
+
+/* Status dots */
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.dot-green{background:var(--success);box-shadow:0 0 6px var(--success)}
+.dot-red{background:var(--danger);box-shadow:0 0 6px var(--danger)}
+.dot-yellow{background:var(--warning);box-shadow:0 0 6px var(--warning)}
+.dot-grey{background:var(--muted)}
+
+/* Badge pills */
+.pill{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;letter-spacing:.5px}
+.pill-green{background:rgba(0,230,118,0.12);color:var(--success);border:1px solid rgba(0,230,118,0.25)}
+.pill-red{background:rgba(255,71,87,0.12);color:var(--danger);border:1px solid rgba(255,71,87,0.25)}
+.pill-yellow{background:rgba(255,167,38,0.12);color:var(--warning);border:1px solid rgba(255,167,38,0.25)}
+.pill-grey{background:rgba(100,116,139,0.15);color:var(--muted);border:1px solid rgba(100,116,139,0.2)}
+.pill-blue{background:rgba(0,229,255,0.1);color:var(--accent);border:1px solid rgba(0,229,255,0.2)}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:28px;width:100%;max-width:480px;position:relative}
+.modal-title{font-size:17px;font-weight:700;margin-bottom:20px;color:var(--text)}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1}
+.modal-close:hover{color:var(--text)}
+
+/* Form */
+.field{margin-bottom:16px}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin-bottom:7px}
+.field input,.field select,.field textarea{
+  width:100%;background:rgba(0,0,0,0.3);border:1px solid var(--border);
+  border-radius:9px;padding:11px 14px;color:var(--text);font-size:13px;
+  transition:border-color .2s;outline:none;font-family:inherit;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,0.1)}
+.field select option{background:var(--card);color:var(--text)}
+
+/* Toggle */
+.toggle{position:relative;width:44px;height:24px}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:var(--border);border-radius:12px;cursor:pointer;transition:.3s}
+.toggle-slider:before{content:'';position:absolute;left:3px;top:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.3s}
+.toggle input:checked~.toggle-slider{background:var(--accent)}
+.toggle input:checked~.toggle-slider:before{transform:translateX(20px)}
+
+/* Toasts */
+#toast-wrap{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.toast{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 18px;font-size:13px;animation:toastIn .25s ease;min-width:220px;pointer-events:all}
+.toast.ok{border-color:rgba(0,230,118,0.4);color:var(--success)}
+.toast.err{border-color:rgba(255,71,87,0.4);color:var(--danger)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* Section header */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.section-title{font-size:16px;font-weight:700;color:var(--text)}
+.section-actions{display:flex;gap:8px}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--muted)}
+
+/* Responsive */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);transition:.3s}
+  .sidebar.open{transform:none}
+  .main{margin-left:0}
+  .grid-4,.grid-3{grid-template-columns:repeat(2,1fr)}
+}
+
+/* Glow effects */
+.glow-cyan{box-shadow:0 0 20px rgba(0,229,255,0.15)}
+.glow-purple{box-shadow:0 0 20px rgba(124,58,237,0.15)}
+.accent-line{height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;margin-bottom:20px}
+</style>
+{% block extra_css %}{% endblock %}
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-title">Z3NITH UWU</div>
+    <div class="sidebar-logo-sub">Panel v1.0</div>
+  </div>
+  <div class="sidebar-user">
+    <div class="sidebar-user-role">{{ session.role }}</div>
+    <div class="sidebar-user-name">{{ session.username }}</div>
+  </div>
+  <div class="nav">
+    {% if session.role == 'admin' %}
+    <div class="nav-section">Admin</div>
+    <a href="{{ url_for('admin_dashboard') }}" class="nav-link {% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zm10-5a1 1 0 011-1h4a1 1 0 011 1v8a1 1 0 01-1 1h-4a1 1 0 01-1-1v-8z"/></svg>
+      Dashboard
+    </a>
+    <a href="{{ url_for('admin_invites') }}" class="nav-link {% if request.endpoint == 'admin_invites' %}active{% endif %}">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+      Invite Links
+    </a>
+    {% else %}
+    <div class="nav-section">Farm</div>
+    <a href="{{ url_for('client_dashboard') }}" class="nav-link {% if request.endpoint == 'client_dashboard' %}active{% endif %}">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v5a1 1 0 01-1 1H5a1 1 0 01-1-1V5zm10 0a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zm10-5a1 1 0 011-1h4a1 1 0 011 1v8a1 1 0 01-1 1h-4a1 1 0 01-1-1v-8z"/></svg>
+      Dashboard
+    </a>
+    <a href="{{ url_for('client_accounts') }}" class="nav-link {% if request.endpoint == 'client_accounts' %}active{% endif %}">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      Accounts
+    </a>
+    <a href="{{ url_for('client_settings') }}" class="nav-link {% if request.endpoint == 'client_settings' %}active{% endif %}">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Settings
+    </a>
+    {% endif %}
+  </div>
+  <div class="sidebar-footer">
+    <a href="{{ url_for('logout') }}" class="logout-btn">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+      Logout
+    </a>
+  </div>
+</nav>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+    <div class="topbar-badges">
+      {% if session.role == 'admin' %}
+      <span class="badge badge-admin">👑 Admin</span>
+      {% else %}
+      <span class="badge badge-client">🌿 Client</span>
+      {% endif %}
+    </div>
+  </div>
+  <div class="content">
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-wrap"></div>
+
+<script>
+function toast(msg, ok=true){
+  const w=document.getElementById('toast-wrap');
+  const d=document.createElement('div');
+  d.className='toast '+(ok?'ok':'err');
+  d.textContent=msg;
+  w.appendChild(d);
+  setTimeout(()=>d.remove(),3500);
+}
+function api(url, method='POST', body=null){
+  const opts={method,headers:{}};
+  if(body instanceof FormData){opts.body=body}
+  else if(body){opts.headers['Content-Type']='application/json';opts.body=JSON.stringify(body)}
+  return fetch(url,opts).then(r=>r.json());
+}
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>
