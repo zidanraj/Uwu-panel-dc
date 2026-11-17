@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Z3NITH UWU PANEL — Login</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#070b14;
+  --card:#0d1525;
+  --border:#1a2a4a;
+  --accent:#00e5ff;
+  --accent2:#7c3aed;
+  --text:#e2e8f0;
+  --muted:#64748b;
+  --danger:#ff4757;
+  --success:#00e676;
+  --glow:rgba(0,229,255,0.15);
+}
+body{
+  background:var(--bg);
+  min-height:100vh;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Segoe UI',system-ui,sans-serif;
+  overflow:hidden;
+  color:var(--text);
+}
+.bg-mesh{
+  position:fixed;inset:0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 50%,rgba(0,229,255,0.07),transparent),
+    radial-gradient(ellipse 60% 60% at 80% 20%,rgba(124,58,237,0.08),transparent),
+    radial-gradient(ellipse 50% 80% at 70% 80%,rgba(0,229,255,0.05),transparent);
+  z-index:0;
+}
+.particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+.card{
+  position:relative;z-index:1;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:40px 44px;
+  width:100%;max-width:420px;
+  box-shadow:
+    0 0 0 1px rgba(0,229,255,0.08),
+    0 20px 60px rgba(0,0,0,0.6),
+    0 0 80px rgba(0,229,255,0.04);
+  backdrop-filter:blur(20px);
+}
+.logo{
+  text-align:center;
+  margin-bottom:32px;
+}
+.logo-title{
+  font-size:26px;font-weight:800;letter-spacing:2px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+  text-shadow:none;
+}
+.logo-sub{
+  font-size:12px;color:var(--muted);letter-spacing:4px;
+  text-transform:uppercase;margin-top:4px;
+}
+.field{margin-bottom:18px}
+.field label{
+  display:block;font-size:12px;font-weight:600;
+  color:var(--muted);letter-spacing:1px;text-transform:uppercase;
+  margin-bottom:8px;
+}
+.field input{
+  width:100%;
+  background:rgba(0,0,0,0.3);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:12px 16px;
+  color:var(--text);
+  font-size:14px;
+  transition:border-color .2s,box-shadow .2s;
+  outline:none;
+}
+.field input:focus{
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(0,229,255,0.1);
+}
+.btn{
+  width:100%;
+  background:linear-gradient(135deg,var(--accent),#0099cc);
+  border:none;border-radius:10px;
+  padding:14px;
+  color:#000;font-weight:700;font-size:15px;
+  letter-spacing:1px;cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+  margin-top:8px;
+  position:relative;overflow:hidden;
+}
+.btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,0.15),transparent);
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(0,229,255,0.3)}
+.btn:active{transform:translateY(0)}
+.error-box{
+  background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.3);
+  border-radius:10px;padding:12px 16px;
+  color:var(--danger);font-size:13px;text-align:center;
+  margin-bottom:18px;
+}
+.glow-line{
+  height:2px;width:60px;margin:0 auto 28px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);
+  border-radius:1px;
+}
+</style>
+</head>
+<body>
+<div class="bg-mesh"></div>
+<canvas class="particles" id="cv"></canvas>
+<div class="card">
+  <div class="logo">
+    <div class="logo-title">Z3NITH UWU</div>
+    <div class="logo-sub">Panel v1.0</div>
+  </div>
+  <div class="glow-line"></div>
+  {% with msgs = get_flashed_messages() %}
+  {% if msgs %}
+  <div class="error-box">
+    {% for m in msgs %}
+    {% if m == "invalid_credentials" %}Invalid username or password.
+    {% elif m == "account_expired" %}Your account has expired.
+    {% elif m == "account_disabled" %}Your account has been disabled.
+    {% elif m == "registered" %}Account created! Please login.
+    {% else %}{{ m }}{% endif %}
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+  {% if invite_error is defined and invite_error %}
+  <div class="error-box">{{ invite_error }}</div>
+  {% endif %}
+  <form method="POST">
+    <div class="field">
+      <label>Username</label>
+      <input type="text" name="username" placeholder="Enter username" required autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" name="password" placeholder="Enter password" required>
+    </div>
+    <button class="btn" type="submit">ACCESS PANEL</button>
+  </form>
+</div>
+<script>
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let w,h,pts=[];
+function resize(){cv.width=w=innerWidth;cv.height=h=innerHeight}
+function mkPt(){return{x:Math.random()*w,y:Math.random()*h,r:Math.random()*1.5+0.3,dx:(Math.random()-.5)*0.3,dy:(Math.random()-.5)*0.3,a:Math.random()}}
+resize();window.onresize=resize;
+for(let i=0;i<80;i++)pts.push(mkPt());
+function frame(){
+  ctx.clearRect(0,0,w,h);
+  pts.forEach(p=>{
+    p.x+=p.dx;p.y+=p.dy;
+    if(p.x<0)p.x=w;if(p.x>w)p.x=0;
+    if(p.y<0)p.y=h;if(p.y>h)p.y=0;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(0,229,255,${p.a*0.4})`;ctx.fill();
+  });
+  requestAnimationFrame(frame);
+}
+frame();
+</script>
+</body>
+</html>
