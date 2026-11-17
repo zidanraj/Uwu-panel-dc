@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: z3nith-uwu-panel
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -k eventlet -w 1 --bind 0.0.0.0:$PORT main:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: ADMIN_USERNAME
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
