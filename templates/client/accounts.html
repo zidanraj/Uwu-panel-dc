@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}Accounts — Z3NITH{% endblock %}
+{% block page_title %}Accounts{% endblock %}
+{% block content %}
+<div class="accent-line"></div>
+
+<div class="section-header" style="margin-bottom:20px">
+  <div>
+    <div class="section-title">🤖 Manage Accounts</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:4px">{{ accounts|length }}/50 accounts</div>
+  </div>
+  <div class="section-actions">
+    <button class="btn btn-success" onclick="startAll()">▶ Start All</button>
+    <button class="btn btn-danger" onclick="stopAll()">■ Stop All</button>
+    {% if can_add %}
+    <button class="btn btn-primary" onclick="openModal()">+ Add Account</button>
+    {% else %}
+    <button class="btn btn-ghost" disabled>Max 50 Reached</button>
+    {% endif %}
+  </div>
+</div>
+
+{% if accounts %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th><th>Channel ID</th><th>Status</th>
+        <th>Balance</th><th>Hunts</th><th>Battles</th>
+        <th>Proxy</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="acc-tbody">
+      {% for acc in accounts %}
+      <tr id="row-{{ acc.aid }}">
+        <td style="font-weight:600">{{ acc.name }}</td>
+        <td style="font-family:monospace;font-size:12px;color:var(--muted)">{{ acc.channel_id }}</td>
+        <td>
+          {% if acc.running %}
+            <span class="pill pill-green"><span class="dot dot-green"></span>Running</span>
+          {% else %}
+            <span class="pill pill-grey">Stopped</span>
+          {% endif %}
+        </td>
+        <td style="color:var(--success)">{{ acc.balance }}</td>
+        <td>{{ acc.hunts }}</td>
+        <td>{{ acc.battles }}</td>
+        <td style="font-size:12px;color:var(--muted)">{{ acc.proxy if acc.proxy else 'direct' }}</td>
+        <td>
+          <div style="display:flex;gap:5px">
+            {% if acc.running %}
+            <button class="btn btn-danger btn-sm" onclick="stopOne('{{ acc.aid }}')">■ Stop</button>
+            {% else %}
+            <button class="btn btn-success btn-sm" onclick="startOne('{{ acc.aid }}')">▶ Start</button>
+            {% endif %}
+            <button class="btn btn-danger btn-sm" onclick="delAcc('{{ acc.aid }}','{{ acc.name }}')">Del</button>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card" style="text-align:center;padding:60px">
+  <div style="font-size:40px;margin-bottom:16px">🤖</div>
+  <div style="font-size:16px;font-weight:600;margin-bottom:8px">No Accounts Yet</div>
+  <div style="color:var(--muted);margin-bottom:20px">Add up to 50 Discord accounts to start farming</div>
+  <button class="btn btn-primary" onclick="openModal()">+ Add First Account</button>
+</div>
+{% endif %}
+
+<!-- Add Account Modal -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-title">➕ Add Account</div>
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="field">
+      <label>Account Name</label>
+      <input type="text" id="f-name" placeholder="e.g. Main Account" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Discord Token</label>
+      <input type="text" id="f-token" placeholder="Paste token here" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Channel ID</label>
+      <input type="text" id="f-channel" placeholder="OWO farming channel ID" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>Proxy (optional, leave blank for direct)</label>
+      <input type="text" id="f-proxy" placeholder="socks5://host:port or user:pass@host:port">
+    </div>
+    <div style="display:flex;gap:8px;margin-top:4px">
+      <button class="btn btn-primary" style="flex:1" onclick="addAcc()">Add Account</button>
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function openModal(){document.getElementById('add-modal').classList.add('open')}
+function closeModal(){document.getElementById('add-modal').classList.remove('open')}
+document.getElementById('add-modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
+
+async function addAcc(){
+  const name=document.getElementById('f-name').value.trim();
+  const token=document.getElementById('f-token').value.trim();
+  const channel=document.getElementById('f-channel').value.trim();
+  const proxy=document.getElementById('f-proxy').value.trim();
+  if(!token||!channel){toast('Token and channel required',false);return;}
+  const fd=new FormData();
+  fd.append('name',name||'Account');
+  fd.append('token',token);
+  fd.append('channel_id',channel);
+  fd.append('proxy',proxy);
+  const r=await api('/accounts/add','POST',fd);
+  if(r.ok){toast('Account added!');setTimeout(()=>location.reload(),800);}
+  else toast(r.error||'Error',false);
+}
+async function delAcc(aid,name){
+  if(!confirm(`Delete account "${name}"?`))return;
+  const r=await api(`/accounts/${aid}/delete`);
+  if(r.ok){document.getElementById('row-'+aid).remove();toast('Account deleted.');}
+  else toast('Error',false);
+}
+async function startOne(aid){
+  const r=await api(`/accounts/${aid}/start`);
+  if(r.ok){toast('Starting...');setTimeout(()=>location.reload(),1000);}
+  else toast('Error',false);
+}
+async function stopOne(aid){
+  const r=await api(`/accounts/${aid}/stop`);
+  if(r.ok){toast('Stopped.');setTimeout(()=>location.reload(),800);}
+}
+async function startAll(){
+  const r=await api('/accounts/start_all');
+  if(r.ok){toast('All starting...');setTimeout(()=>location.reload(),1200);}
+}
+async function stopAll(){
+  const r=await api('/accounts/stop_all');
+  if(r.ok){toast('All stopped.');setTimeout(()=>location.reload(),900);}
+}
+// Live refresh
+setInterval(async()=>{
+  const data=await fetch('/stats').then(r=>r.json()).catch(()=>[]);
+  if(!Array.isArray(data))return;
+  data.forEach(a=>{
+    // could update specific rows here
+  });
+},8000);
+</script>
+{% endblock %}
