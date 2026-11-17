@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Client: {{ client.username }} — Z3NITH{% endblock %}
+{% block page_title %}Client: {{ client.username }}{% endblock %}
+{% block content %}
+<div class="accent-line"></div>
+<div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+  <div class="card" style="flex:1;min-width:140px">
+    <div class="card-title">Status</div>
+    <div class="stat-val" style="font-size:18px">
+      {% if client.active %}<span style="color:var(--success)">Active</span>{% else %}<span style="color:var(--danger)">Disabled</span>{% endif %}
+    </div>
+  </div>
+  <div class="card" style="flex:1;min-width:140px">
+    <div class="card-title">Accounts</div>
+    <div class="stat-val" style="color:var(--accent)">{{ accounts|length }}</div>
+  </div>
+  <div class="card" style="flex:1;min-width:140px">
+    <div class="card-title">Expires</div>
+    <div class="stat-val" style="font-size:16px;color:var(--muted)">{{ client.expires_at[:10] if client.expires_at else '∞' }}</div>
+  </div>
+  <div style="display:flex;align-items:flex-end;gap:8px">
+    <button class="btn btn-danger" onclick="toggleThis()">Toggle Active</button>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-ghost">← Back</a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="section-title" style="margin-bottom:16px">Accounts</div>
+  {% if accounts %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Channel</th><th>Status</th><th>Balance</th><th>Hunts</th><th>Battles</th><th>Proxy</th></tr></thead>
+      <tbody>
+        {% for acc in accounts %}
+        <tr>
+          <td style="font-weight:600">{{ acc.name }}</td>
+          <td style="font-family:monospace;font-size:12px;color:var(--muted)">{{ acc.channel_id }}</td>
+          <td>
+            {% if acc.running %}<span class="pill pill-green">Running</span>
+            {% else %}<span class="pill pill-grey">Stopped</span>{% endif %}
+          </td>
+          <td style="color:var(--success)">{{ acc.balance }}</td>
+          <td>{{ acc.hunts }}</td>
+          <td>{{ acc.battles }}</td>
+          <td style="font-size:12px;color:var(--muted)">{{ acc.proxy or 'direct' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:30px;color:var(--muted)">No accounts configured.</div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+async function toggleThis(){
+  const r=await api('/admin/client/{{ uid }}/toggle');
+  if(r.ok){toast(r.active?'Enabled':'Disabled');setTimeout(()=>location.reload(),800);}
+}
+</script>
+{% endblock %}
