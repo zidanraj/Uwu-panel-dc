@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — Z3NITH{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+<div class="accent-line"></div>
+
+<!-- Stats -->
+<div class="grid-4" style="margin-bottom:24px">
+  <div class="card glow-cyan">
+    <div class="card-title">💰 Balance</div>
+    <div class="stat-val" style="color:var(--accent)" id="stat-balance">{{ total_balance }}</div>
+    <div class="stat-sub">owoncy</div>
+  </div>
+  <div class="card">
+    <div class="card-title">🤖 Accounts</div>
+    <div class="stat-val" id="stat-total">{{ total }}</div>
+    <div class="stat-sub"><span style="color:var(--success)" id="stat-running">{{ running }}</span> running</div>
+  </div>
+  <div class="card">
+    <div class="card-title">🏹 Hunts</div>
+    <div class="stat-val" style="color:var(--accent2)" id="stat-hunts">{{ total_hunts }}</div>
+    <div class="stat-sub">all time</div>
+  </div>
+  <div class="card">
+    <div class="card-title">⚔️ Battles</div>
+    <div class="stat-val" id="stat-battles">{{ total_battles }}</div>
+    <div class="stat-sub">all time</div>
+  </div>
+</div>
+
+<!-- Quick Controls -->
+<div class="card" style="margin-bottom:24px">
+  <div class="section-header">
+    <div class="section-title">⚡ Quick Controls</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-success" onclick="startAll()">▶ Start All</button>
+      <button class="btn btn-danger" onclick="stopAll()">■ Stop All</button>
+    </div>
+  </div>
+
+  <!-- Send OWO Section -->
+  <div style="border-top:1px solid var(--border);padding-top:20px;margin-top:4px">
+    <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:14px">💸 Send OWO Coins</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+      <div class="field" style="margin:0;flex:1;min-width:160px">
+        <label>Target Username</label>
+        <input type="text" id="send-target" placeholder="e.g. OwO#0000" autocomplete="off">
+      </div>
+      <div class="field" style="margin:0;width:140px">
+        <label>Amount</label>
+        <input type="number" id="send-amount" value="100" min="1">
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" onclick="sendAll()">Send All Accounts</button>
+      </div>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--muted)">
+      ⏱ 8 second gap between each account send. Sequential, automatic.
+    </div>
+
+    <!-- Per-account send -->
+    <div style="margin-top:16px" id="per-acc-send">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase">Or send from specific accounts:</div>
+      <div id="acc-checkboxes" style="display:flex;flex-wrap:wrap;gap:8px">
+        {% for aid, acc in accounts.items() %}
+        <label style="display:flex;align-items:center;gap:6px;background:rgba(0,0,0,0.2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;font-size:12px">
+          <input type="checkbox" name="acc_select" value="{{ aid }}" style="accent-color:var(--accent)">
+          {{ acc.name }}
+        </label>
+        {% else %}
+        <span style="color:var(--muted);font-size:13px">No accounts yet.</span>
+        {% endfor %}
+      </div>
+      <button class="btn btn-purple btn-sm" style="margin-top:10px" onclick="sendSelected()">Send Selected</button>
+    </div>
+  </div>
+</div>
+
+<!-- Account Status Table -->
+<div class="card">
+  <div class="section-header">
+    <div class="section-title">🌾 Account Status</div>
+    <a href="{{ url_for('client_accounts') }}" class="btn btn-ghost btn-sm">Manage Accounts →</a>
+  </div>
+  {% if accounts %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Status</th><th>Balance</th><th>Hunts</th><th>Battles</th><th>Quick</th></tr></thead>
+      <tbody id="acc-table">
+        {% for aid, acc in accounts.items() %}
+        <tr id="arow-{{ aid }}">
+          <td style="font-weight:600">{{ acc.name }}</td>
+          <td>
+            {% if acc.running %}<span class="pill pill-green">Running</span>
+            {% else %}<span class="pill pill-grey">Stopped</span>{% endif %}
+          </td>
+          <td style="color:var(--success)">{{ acc.balance }}</td>
+          <td>{{ acc.hunts }}</td>
+          <td>{{ acc.battles }}</td>
+          <td>
+            {% if not acc.running %}
+            <button class="btn btn-success btn-sm" onclick="startOne('{{ aid }}')">▶</button>
+            {% else %}
+            <button class="btn btn-danger btn-sm" onclick="stopOne('{{ aid }}')">■</button>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:40px;color:var(--muted)">
+    No accounts configured yet. <a href="{{ url_for('client_accounts') }}" style="color:var(--accent)">Add one →</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+async function startAll(){
+  const r=await api('/accounts/start_all');
+  if(r.ok){toast('All accounts starting...');setTimeout(()=>location.reload(),1200);}
+  else toast('Error',false);
+}
+async function stopAll(){
+  const r=await api('/accounts/stop_all');
+  if(r.ok){toast('All accounts stopped.');setTimeout(()=>location.reload(),1000);}
+  else toast('Error',false);
+}
+async function startOne(aid){
+  const r=await api(`/accounts/${aid}/start`);
+  if(r.ok){toast('Account starting...');setTimeout(()=>location.reload(),1000);}
+}
+async function stopOne(aid){
+  const r=await api(`/accounts/${aid}/stop`);
+  if(r.ok){toast('Account stopped.');setTimeout(()=>location.reload(),800);}
+}
+async function sendAll(){
+  const target=document.getElementById('send-target').value.trim();
+  const amount=document.getElementById('send-amount').value.trim();
+  if(!target||!amount){toast('Enter target and amount',false);return;}
+  const fd=new FormData();
+  fd.append('target',target);fd.append('amount',amount);
+  const r=await api('/send_owo','POST',fd);
+  if(r.ok)toast(`Queued ${r.queued} accounts. 8s gap between each.`);
+  else toast(r.error||'Error',false);
+}
+async function sendSelected(){
+  const target=document.getElementById('send-target').value.trim();
+  const amount=document.getElementById('send-amount').value.trim();
+  if(!target||!amount){toast('Enter target and amount',false);return;}
+  const checked=[...document.querySelectorAll('input[name=acc_select]:checked')].map(e=>e.value);
+  if(!checked.length){toast('Select at least one account',false);return;}
+  const fd=new FormData();
+  fd.append('target',target);fd.append('amount',amount);
+  checked.forEach(id=>fd.append('account_ids',id));
+  const r=await api('/send_owo','POST',fd);
+  if(r.ok)toast(`Queued ${r.queued} accounts.`);
+  else toast(r.error||'Error',false);
+}
+// Live stats refresh
+setInterval(async()=>{
+  const data=await fetch('/stats').then(r=>r.json()).catch(()=>[]);
+  if(!Array.isArray(data))return;
+  let bal=0,hunts=0,battles=0,running=0;
+  data.forEach(a=>{bal+=a.balance;hunts+=a.hunts;battles+=a.battles;if(a.running)running++;});
+  document.getElementById('stat-balance').textContent=bal;
+  document.getElementById('stat-hunts').textContent=hunts;
+  document.getElementById('stat-battles').textContent=battles;
+  document.getElementById('stat-running').textContent=running;
+},10000);
+</script>
+{% endblock %}
