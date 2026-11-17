@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — Z3NITH{% endblock %}
+{% block page_title %}Admin Dashboard{% endblock %}
+{% block content %}
+<div class="accent-line"></div>
+
+<!-- Stats -->
+<div class="grid-4" style="margin-bottom:24px">
+  <div class="card">
+    <div class="card-title">Total Clients</div>
+    <div class="stat-val" style="color:var(--accent)">{{ stats.total_clients }}</div>
+    <div class="stat-sub">{{ stats.active_clients }} active</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Total Accounts</div>
+    <div class="stat-val" style="color:var(--accent2)">{{ stats.total_accounts }}</div>
+    <div class="stat-sub">across all clients</div>
+  </div>
+  <div class="card">
+    <div class="card-title">Invite Links</div>
+    <div class="stat-val">{{ stats.total_invites }}</div>
+    <div class="stat-sub">{{ stats.pending_invites }} pending</div>
+  </div>
+  <div class="card">
+    <div class="card-title">System</div>
+    <div class="stat-val" style="color:var(--success)">LIVE</div>
+    <div class="stat-sub">all systems up</div>
+  </div>
+</div>
+
+<!-- Create Invite -->
+<div class="card" style="margin-bottom:24px">
+  <div class="section-header">
+    <div class="section-title">🔗 Generate Invite Link</div>
+  </div>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+    <div class="field" style="margin:0;flex:1;min-width:200px">
+      <label>Account Duration (hours, 0 = unlimited)</label>
+      <input type="number" id="inv-dur" value="0" min="0" placeholder="0 = unlimited">
+    </div>
+    <button class="btn btn-primary" onclick="createInvite()">
+      <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Generate
+    </button>
+  </div>
+  <div id="inv-result" style="display:none;margin-top:16px">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase">Generated Link (valid 24h)</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="inv-link" type="text" readonly style="flex:1;background:rgba(0,0,0,0.3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--accent);font-size:12px;font-family:monospace;outline:none">
+      <button class="btn btn-ghost btn-sm" onclick="copyInv()">Copy</button>
+    </div>
+  </div>
+</div>
+
+<!-- Clients Table -->
+<div class="card">
+  <div class="section-header">
+    <div class="section-title">👥 Clients</div>
+  </div>
+  {% if clients %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Username</th><th>Status</th><th>Accounts</th><th>Created</th><th>Expires</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cl in clients %}
+        <tr id="row-{{ cl.uid }}">
+          <td style="font-weight:600">{{ cl.username }}</td>
+          <td>
+            {% if cl.expired %}
+              <span class="pill pill-yellow">Expired</span>
+            {% elif cl.active %}
+              <span class="pill pill-green">Active</span>
+            {% else %}
+              <span class="pill pill-red">Disabled</span>
+            {% endif %}
+          </td>
+          <td><span class="pill pill-blue">{{ cl.account_count }}</span></td>
+          <td style="color:var(--muted);font-size:12px">{{ cl.created_at[:10] if cl.created_at else '—' }}</td>
+          <td style="color:var(--muted);font-size:12px">{{ cl.expires_at[:10] if cl.expires_at else '∞ Unlimited' }}</td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <a href="/admin/client/{{ cl.uid }}/view" class="btn btn-ghost btn-sm">View</a>
+              <button class="btn btn-ghost btn-sm" onclick="toggleClient('{{ cl.uid }}',this)" data-active="{{ 'true' if cl.active else 'false' }}">
+                {{ 'Disable' if cl.active else 'Enable' }}
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="deleteClient('{{ cl.uid }}','{{ cl.username }}')">Del</button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:40px;color:var(--muted);font-size:14px">No clients yet. Generate an invite link to get started.</div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+async function createInvite(){
+  const dur=document.getElementById('inv-dur').value;
+  const fd=new FormData();
+  fd.append('account_duration_hours',dur);
+  const r=await api('/admin/invite/create','POST',fd);
+  if(r.link){
+    document.getElementById('inv-result').style.display='block';
+    document.getElementById('inv-link').value=r.link;
+    toast('Invite link generated!');
+  }
+}
+function copyInv(){
+  const inp=document.getElementById('inv-link');
+  inp.select();document.execCommand('copy');
+  toast('Copied to clipboard!');
+}
+async function toggleClient(uid,btn){
+  const r=await api(`/admin/client/${uid}/toggle`);
+  if(r.ok){
+    btn.textContent=r.active?'Disable':'Enable';
+    btn.dataset.active=r.active;
+    const row=document.getElementById('row-'+uid);
+    const pill=row.querySelector('.pill');
+    pill.className='pill '+(r.active?'pill-green':'pill-red');
+    pill.textContent=r.active?'Active':'Disabled';
+    toast(r.active?'Client enabled':'Client disabled');
+  }
+}
+async function deleteClient(uid,name){
+  if(!confirm(`Delete client "${name}"? This cannot be undone.`))return;
+  const r=await api(`/admin/client/${uid}/delete`);
+  if(r.ok){document.getElementById('row-'+uid).remove();toast('Client deleted.');}
+  else toast('Error deleting client.',false);
+}
+</script>
+{% endblock %}
