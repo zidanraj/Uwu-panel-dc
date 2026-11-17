@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Invite Links — Z3NITH{% endblock %}
+{% block page_title %}Invite Links{% endblock %}
+{% block content %}
+<div class="accent-line"></div>
+<div class="card">
+  <div class="section-header">
+    <div class="section-title">🔗 All Invite Links</div>
+    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-ghost btn-sm">← Dashboard</a>
+  </div>
+  {% if invites %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Link</th><th>Status</th><th>Account Duration</th><th>Used By</th><th>Expires</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for inv in invites %}
+        <tr id="inv-{{ inv.code }}">
+          <td style="font-family:monospace;font-size:12px;color:var(--accent)">
+            <a href="{{ inv.link }}" target="_blank" style="color:var(--accent);text-decoration:none">{{ inv.link[:50] }}...</a>
+          </td>
+          <td>
+            {% if inv.used %}<span class="pill pill-grey">Used</span>
+            {% elif inv.expired %}<span class="pill pill-red">Expired</span>
+            {% else %}<span class="pill pill-green">Active</span>{% endif %}
+          </td>
+          <td style="color:var(--muted)">{{ inv.duration_hours ~ 'h' if inv.duration_hours else '∞' }}</td>
+          <td style="color:var(--text)">{{ inv.used_by or '—' }}</td>
+          <td style="color:var(--muted);font-size:12px">{{ inv.expires_at[:16] if inv.expires_at else '—' }}</td>
+          <td>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-ghost btn-sm" onclick="copyLink('{{ inv.link }}')">Copy</button>
+              <button class="btn btn-danger btn-sm" onclick="delInv('{{ inv.code }}')">Del</button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:40px;color:var(--muted)">No invites generated yet.</div>
+  {% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function copyLink(l){navigator.clipboard.writeText(l);toast('Copied!');}
+async function delInv(code){
+  if(!confirm('Delete this invite?'))return;
+  const r=await api(`/admin/invite/${code}/delete`);
+  if(r.ok){document.getElementById('inv-'+code).remove();toast('Deleted.');}
+}
+</script>
+{% endblock %}
